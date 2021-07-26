@@ -26,6 +26,7 @@ TEST_CASE("Spawn a simple processs") {
         CHECK(proc.exit_result()->exit_code == 42);
 
         auto content = btr::file::read("output.txt");
+        std::filesystem::remove("output.txt");
         CHECK(content == "hello\n");
 
         proc = btr::subprocess::spawn(
@@ -54,8 +55,8 @@ TEST_CASE("Spawn a simple processs") {
         CHECK(proc.exit_result()->signal_number == SIGINT);
 
         auto this_dir    = std::filesystem::current_path();
-        auto test_subdir = this_dir / "test-subdir";
-        std::filesystem::create_directory("test-subdir");
+        auto test_subdir = this_dir / "_test";
+        std::filesystem::create_directory(test_subdir);
         proc = btr::subprocess::spawn({
             .command           = {"/bin/sh", "-c", "echo 'hello' > output.txt"},
             .working_directory = test_subdir,

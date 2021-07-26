@@ -36,4 +36,5 @@ TEST_CASE("Write some non-byte-sized data") {
     auto f = btr::file::open(THIS_DIR / "test.data");
     str.resize(f.read_into(str));
     CHECK(str == u"I am a string");
+    std::filesystem::remove(THIS_DIR / "test.data");
 }
