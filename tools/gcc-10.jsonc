@@ -1,0 +1,13 @@
+{
+    "compiler_id": "gnu",
+    "cxx_compiler": "g++-10",
+    "cxx_version": "c++20",
+    "flags": [
+        "-fsanitize=address,undefined"
+    ],
+    "link_flags": [
+        "-fsanitize=address,undefined"
+    ],
+    "debug": true,
+    "optimize": false
+}

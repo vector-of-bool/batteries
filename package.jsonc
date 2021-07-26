@@ -1,0 +1,10 @@
+{
+    "name": "vob-batteries",
+    "version": "0.2.4",
+    "namespace": "vob",
+    "test_driver": "Catch-Main",
+    "depends": [
+        "neo-fun^0.9.1",
+        "neo-buffer^0.5.1"
+    ]
+}
