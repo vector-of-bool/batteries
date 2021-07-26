@@ -55,7 +55,7 @@ std::optional<std::wstring> getenv_wstr(std::wstring const& varname, std::size_t
 }  // namespace
 
 std::optional<std::string> btr::getenv(u8view key) noexcept {
-    std::optional<std::wstring> val = getenv_wstr(btr::wide_encode(key));
+    std::optional<std::wstring> val = getenv_wstr(btr::wide_encode(key.u8string_view()));
     if (!val) {
         return std::nullopt;
     }

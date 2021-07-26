@@ -8,7 +8,7 @@ using namespace btr;
 
 #include <windows.h>
 
-void win32_handle_traits::close(HANDLE h) { ::CloseHandle(h); }
+void win32_handle_traits::close(HANDLE h) noexcept { ::CloseHandle(h); }
 
 std::size_t win32_handle_traits::write(HANDLE h, const_buffer buf) {
     neo_assert(expects,
@@ -30,7 +30,7 @@ std::size_t win32_handle_traits::read(HANDLE h, mutable_buffer buf) {
                "Attempted to read data from a closed HANDLE",
                buf.size());
     DWORD nread = 0;
-    auto  okay  = ::ReadFile(h, buf, static_cast<DWORD>(buf.size()), &nread, nullptr);
+    auto  okay  = ::ReadFile(h, buf.data(), static_cast<DWORD>(buf.size()), &nread, nullptr);
     if (!okay) {
         throw_current_error("::ReadFile() failed");
     }

@@ -1,6 +1,10 @@
 {
     "compiler_id": "msvc",
-    "flags": "/std:c++latest /Zc:preprocessor /D_CRT_SECURE_NO_WARNING=1",
+    "flags": "/std:c++latest /Zc:preprocessor",
     "debug": true,
-    "warning_flags": "/WX"
+    "warning_flags": [
+        "/WX",
+        "/D_CRT_SECURE_NO_WARNINGS=1",
+        "/wd5105" // macro expansion producing 'defined' has undefined behavior
+    ]
 }
