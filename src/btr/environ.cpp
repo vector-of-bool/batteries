@@ -1,5 +1,7 @@
 #include "./environ.hpp"
 
+#include "./utf.hpp"
+
 using namespace btr;
 
 #if !_WIN32

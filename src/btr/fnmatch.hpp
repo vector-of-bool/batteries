@@ -35,7 +35,7 @@ public:
  * @brief A pre-compiled fnmatch pattern
  */
 class fnmatch_pattern {
-    struct impl;
+    class impl;
     std::shared_ptr<const impl> _impl;
 
     bool _test(u8view) const noexcept;
