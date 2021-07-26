@@ -13,12 +13,15 @@ TEST_CASE("Spawn a simple processs") {
         auto rc   = proc.join();
         CHECK(rc.exit_code == 0);
 
-        proc = btr::subprocess::spawn(
-            {.command = {"/bin/sh", "-c", "echo hello; sleep 0.1; exit 42"},
-             .stdout  = std::filesystem::path("output.txt")});
-        CHECK(proc.is_running());
-        CHECK_FALSE(proc.is_joined());
-        CHECK_FALSE(proc.try_join());
+        proc = btr::subprocess::spawn({
+            .command = {"/bin/bash", "-c", "echo hello; cat > /dev/null; exit 42"},
+            .stdin   = btr::subprocess::stdio_pipe,
+            .stdout  = std::filesystem::path("output.txt"),
+        });
+        REQUIRE(proc.is_running());
+        REQUIRE_FALSE(proc.is_joined());
+        REQUIRE_FALSE(proc.try_join());
+        proc.close_stdin();
         proc.join();
         CHECK_FALSE(proc.is_running());
         CHECK(proc.is_joined());
