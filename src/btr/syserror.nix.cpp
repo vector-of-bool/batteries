@@ -1,6 +1,6 @@
 #include "./syserror.hpp"
 
-#if __unix__
+#if !_WIN32
 
 #include <cerrno>
 
