@@ -63,7 +63,7 @@ std::optional<std::string> btr::getenv(u8view key) noexcept {
 }
 
 std::optional<std::u8string> btr::u8getenv(u8view key) noexcept {
-    auto val = getenv_wstr(btr::wide_encode(key));
+    auto val = getenv_wstr(btr::wide_encode(key.u8string_view()));
     if (!val) {
         return std::nullopt;
     }

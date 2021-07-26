@@ -1,6 +1,6 @@
 {
     "compiler_id": "msvc",
-    "flags": "/std:c++latest /Zc:preprocessor",
+    "flags": "/std:c++latest /Zc:preprocessor /D_CRT_SECURE_NO_WARNING=1",
     "debug": true,
     "warning_flags": "/WX"
 }
