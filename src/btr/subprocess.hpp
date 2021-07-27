@@ -2,6 +2,7 @@
 
 #include "./pipe.hpp"
 #include "./subprocess_fwd.hpp"
+#include "./u8view.hpp"
 
 #include <neo/assert.hpp>
 #include <neo/opt_ref.hpp>
@@ -74,20 +75,20 @@ struct subprocess_result {
 class subprocess {
 public:
     /// Create a communication pipe for the between the current process and the child process
-    static struct stdio_pipe_t {
+    static inline struct stdio_pipe_t {
     } stdio_pipe;
 
     /// Allow the child to inherit the associate stdio stream from the parent process (this is the
     /// default)
-    static struct stdio_inherit_t {
+    static inline struct stdio_inherit_t {
     } stdio_inherit;
 
     /// Redirect the stderr stream of the child process into its stdout stream.
-    static struct stderr_to_stdout_t {
+    static inline struct stderr_to_stdout_t {
     } stderr_to_stdout;
 
     /// Discard the data from the associated stdio stream. For stdin, immediately gets EOF.
-    static struct stdio_null_t {
+    static inline struct stdio_null_t {
     } stdio_null;
 
 private:
@@ -415,6 +416,23 @@ subprocess subprocess::_spawn_cmd(R&& r) {
         opts.command.emplace_back(arg);
     }
     return spawn(opts);
+}
+
+bool        argv_arg_needs_quoting(u8view arg) noexcept;
+std::string quote_argv_arg(u8view arg) noexcept;
+
+template <std::ranges::input_range R>
+requires std::convertible_to<std::ranges::range_value_t<R>, u8view>  //
+    std::string quote_argv_string(R&& r) noexcept {
+    std::string acc;
+    for (u8view arg : r) {
+        acc.append(quote_argv_arg(arg));
+        acc.push_back(' ');
+    }
+    if (!acc.empty()) {
+        acc.pop_back();
+    }
+    return acc;
 }
 
 }  // namespace btr

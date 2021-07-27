@@ -1,5 +1,7 @@
 #include "./subprocess.hpp"
 
+#include "./utf.hpp"
+
 #include <neo/assert.hpp>
 
 #include <span>
@@ -50,3 +52,31 @@ subprocess_failure::subprocess_failure(int exit_code, int signo) noexcept
                           : neo::ufmt("Subprocess exited [{}]", exit_code))
     , _exit_code(exit_code)
     , _signal_number(signo) {}
+
+bool btr::argv_arg_needs_quoting(u8view arg) noexcept {
+    auto                sv = arg.string_view();
+    codepoint_range     cps{sv};
+    std::u32string_view okay_chars = U"@%-+=:,./|_";
+    const bool          all_okay   = std::all_of(cps.begin(), cps.end(), [&](char32_t c) {
+        return std::isalnum(c) || (okay_chars.find(c) != okay_chars.npos);
+    });
+    return !all_okay;
+}
+
+std::string btr::quote_argv_arg(u8view arg) noexcept {
+    if (!argv_arg_needs_quoting(arg)) {
+        return std::string(arg);
+    }
+    codepoint_range cps{arg.u8string_view()};
+    std::u32string  r;
+    for (char32_t c : cps) {
+        if (c == '\\') {
+            r.append(U"\\\\");
+        } else if (c == '"') {
+            r.append(U"\\\"");
+        } else {
+            r.push_back(c);
+        }
+    }
+    return u8_as_char_encode(r);
+}

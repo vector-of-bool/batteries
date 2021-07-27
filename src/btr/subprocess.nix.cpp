@@ -126,7 +126,7 @@ subprocess subprocess::spawn(const subprocess_spawn_options& opts) {
             },
             [&](stdio_null_t) { stdout_writer = setup_spawn_file_output("/dev/null"); },
         },
-        opts.stdout);
+        opts.stdout_);
 
     std::visit(  //
         neo::overload{
@@ -144,7 +144,7 @@ subprocess subprocess::spawn(const subprocess_spawn_options& opts) {
             [&](stderr_to_stdout_t) { stderr_to_stdout = true; },
             [&](stdio_null_t) { stderr_writer = setup_spawn_file_output("/dev/null"); },
         },
-        opts.stderr);
+        opts.stderr_);
 
     std::visit(  //
         neo::overload{
@@ -162,7 +162,7 @@ subprocess subprocess::spawn(const subprocess_spawn_options& opts) {
             },
             [&](stdio_null_t) { stdin_reader = setup_spawn_file_input("/dev/null"); },
         },
-        opts.stdin);
+        opts.stdin_);
 
     auto error_io_pipe = create_pipe();
 
@@ -342,14 +342,11 @@ void subprocess::_do_read_output(subprocess_output& out, std::chrono::millisecon
             }
             continue;
         }
-        std::string& target     = is_stdout ? out.stdout : out.stderr;
+        std::string& target     = is_stdout ? out.stdout_ : out.stderr_;
         auto         start_size = target.size();
         target.resize(start_size + 1024);
         // Read some data from the pipe
-        ssize_t nread = native_io_stream_ref{pfd.fd}.read_into(neo::as_buffer(target) + start_size);
-        if (nread < 0) {
-            throw_current_error("Failure while reading stdio output from child process");
-        }
+        auto nread = native_io_stream_ref{pfd.fd}.read_into(neo::as_buffer(target) + start_size);
         target.resize(start_size + nread);
         if (nread == 0) {
             // End-of-file

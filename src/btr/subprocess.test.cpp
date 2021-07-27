@@ -117,5 +117,20 @@ TEST_CASE("Spawn a simple processs") {
         proc.join();
         output = proc.read_output();
         CHECK(output.stdout_ == "Hello!");
+    } else {
+        // Unqualified executable name is looked up on the PATH
+        auto proc = btr::subprocess::spawn({"net", "help"});
+        proc.join();
+
+        try {
+            (void)btr::subprocess::spawn({"this-program-does-not-exist.exe"});
+            FAIL_CHECK("Spawn of nonexistent exe did not fail");
+        } catch (const std::system_error& err) {
+            CHECK(err.code() == std::errc::no_such_file_or_directory);
+        }
+
+        // Specifying the file extension is okay
+        proc = btr::subprocess::spawn({"net.exe", "help"});
+        proc.join();
     }
 }
