@@ -15,8 +15,8 @@ TEST_CASE("Spawn a simple processs") {
 
         proc = btr::subprocess::spawn({
             .command = {"/bin/bash", "-c", "echo hello; cat > /dev/null; exit 42"},
-            .stdin   = btr::subprocess::stdio_pipe,
-            .stdout  = std::filesystem::path("output.txt"),
+            .stdin_  = btr::subprocess::stdio_pipe,
+            .stdout_ = std::filesystem::path("output.txt"),
         });
         REQUIRE(proc.is_running());
         REQUIRE_FALSE(proc.is_joined());
@@ -38,23 +38,23 @@ TEST_CASE("Spawn a simple processs") {
         CHECK(content == "hello\n");
 
         proc = btr::subprocess::spawn(
-            {.command = {"/bin/sh", "-c", "echo hello"}, .stdout = btr::subprocess::stdio_pipe});
+            {.command = {"/bin/sh", "-c", "echo hello"}, .stdout_ = btr::subprocess::stdio_pipe});
         btr::subprocess_output out;
         proc.join();
         CHECK(proc.has_stdout());
         proc.read_output_into(out);
         proc.read_output_into(out);
         CHECK_FALSE(proc.has_stdout());
-        CHECK(out.stdout == "hello\n");
+        CHECK(out.stdout_ == "hello\n");
         proc.read_output_into(out);
 
         proc = btr::subprocess::spawn({
             .command = {"/bin/sh", "-c", "echo Howdy"},
-            .stdout  = btr::subprocess::stdio_pipe,
+            .stdout_ = btr::subprocess::stdio_pipe,
         });
         out  = proc.read_output();
-        CHECK(out.stdout == "Howdy\n");
-        CHECK(out.stderr == "");
+        CHECK(out.stdout_ == "Howdy\n");
+        CHECK(out.stderr_ == "");
         CHECK(proc.join().exit_code == 0);
 
         proc = btr::subprocess::spawn({"/bin/sh", "-c", "sleep 10"});
@@ -91,7 +91,7 @@ TEST_CASE("Spawn a simple processs") {
         btr::subprocess::spawn(  //
             {
                 .command = {"/bin/sh", "-c", "echo hello"},
-                .stdout  = btr::subprocess::stdio_null,
+                .stdout_ = btr::subprocess::stdio_null,
             })
             .join()
             .throw_if_error();
@@ -99,23 +99,23 @@ TEST_CASE("Spawn a simple processs") {
         proc = btr::subprocess::spawn(  //
             {
                 .command = {"/bin/cat"},
-                .stdin   = std::filesystem::path(__FILE__),
-                .stdout  = btr::subprocess::stdio_pipe,
+                .stdin_  = std::filesystem::path(__FILE__),
+                .stdout_ = btr::subprocess::stdio_pipe,
             });
         proc.join().throw_if_error();
         auto output = proc.read_output();
-        CHECK(output.stdout == btr::file::read(__FILE__));
+        CHECK(output.stdout_ == btr::file::read(__FILE__));
 
         proc = btr::subprocess::spawn({
             .command = {"/bin/cat"},
-            .stdin   = btr::subprocess::stdio_pipe,
-            .stdout  = btr::subprocess::stdio_pipe,
+            .stdin_  = btr::subprocess::stdio_pipe,
+            .stdout_ = btr::subprocess::stdio_pipe,
         });
         REQUIRE(proc.has_stdin());
         proc.write_input("Hello!");
         proc.close_stdin();
         proc.join();
         output = proc.read_output();
-        CHECK(output.stdout == "Hello!");
+        CHECK(output.stdout_ == "Hello!");
     }
 }

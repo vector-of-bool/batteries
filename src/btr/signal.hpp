@@ -16,7 +16,7 @@ void notify_received_signal(int signum) noexcept;
 /**
  * @brief Clear the received signal number
  */
-inline void reset_signal() noexcept { notify_received_signal(0); }
+inline void reset_signal() noexcept { btr::notify_received_signal(0); }
 
 /**
  * @brief Obtain the number of the most recently received signal. Returns zero if not signal number

@@ -23,8 +23,8 @@ pipe_pair btr::create_pipe() {
     }
 
     btr::pipe_pair pair;
-    pair.reader.adopt(std::move(reader));
-    pair.writer.adopt(std::move(writer));
+    pair.reader.reset(std::move(reader));
+    pair.writer.reset(std::move(writer));
     return pair;
 }
 

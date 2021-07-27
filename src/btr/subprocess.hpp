@@ -17,7 +17,7 @@
 
 namespace btr {
 
-class subprocess_failure : std::runtime_error {
+class subprocess_failure : public std::runtime_error {
     int _exit_code;
     int _signal_number;
 
@@ -60,8 +60,8 @@ struct subprocess_exit {
 };
 
 struct subprocess_output {
-    std::string stdout;
-    std::string stderr;
+    std::string stdout_;
+    std::string stderr_;
 };
 
 struct subprocess_result {
@@ -342,7 +342,7 @@ struct subprocess_spawn_options {
                  subprocess::stdio_inherit_t,
                  subprocess::stdio_pipe_t,
                  std::filesystem::path>
-        stdin{};
+        stdin_{};
 
     /**
      * @brief Control the new stdout stdio stream for the spawned subproces.
@@ -363,7 +363,7 @@ struct subprocess_spawn_options {
                  subprocess::stdio_pipe_t,
                  subprocess::stdio_null_t,
                  std::filesystem::path>
-        stdout{};
+        stdout_{};
 
     /**
      * @brief Control the new stderr stdio stream for the spawned subproces.
@@ -389,7 +389,7 @@ struct subprocess_spawn_options {
                  subprocess::stdio_null_t,
                  subprocess::stderr_to_stdout_t,
                  std::filesystem::path>
-        stderr{};
+        stderr_{};
 
     /**
      * @brief Whether the executable should be looked up on the PATH environment

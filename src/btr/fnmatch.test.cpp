@@ -21,13 +21,13 @@ TEST_CASE("Basic fnmatch matching") {
 
     pat = btr::fnmatch_pattern::compile("foo.*.cpp");
     for (auto fname : {"foo.bar.cpp", "foo..cpp", "foo.cat.cpp"}) {
-        auto m = pat.test(fname);
-        CHECK(m);
+        auto matches = pat.test(fname);
+        CHECK(matches);
     }
 
     for (auto fname : {"foo.cpp", "foo.cpp"}) {
-        auto m = pat.test(fname);
-        CHECK_FALSE(m);
+        auto matches = pat.test(fname);
+        CHECK_FALSE(matches);
     }
 }
 

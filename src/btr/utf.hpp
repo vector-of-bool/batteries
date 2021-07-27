@@ -165,7 +165,7 @@ public:
 };
 
 template <std::ranges::input_range R>
-explicit codepoint_range(R &&) -> codepoint_range<R>;
+explicit codepoint_range(R&&) -> codepoint_range<R>;
 
 /**
  * @brief Transcode a string from one Unicode encoding to another
@@ -203,7 +203,7 @@ std::u8string u8encode(std::ranges::contiguous_range auto&& rng) {
 
 /// Encode the given string as a UTF-8 string in a std::string
 std::string u8_as_char_encode(std::ranges::contiguous_range auto&& rng) {
-    return transcode_string<u8_as_char>(NEO_FWD(rng));
+    return transcode_string<char>(NEO_FWD(rng));
 }
 
 /// Encode the given string as a UTF-16 std::u16string

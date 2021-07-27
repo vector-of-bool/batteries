@@ -92,16 +92,16 @@ utf_detail::ll_encode_res<char> utf_detail::ll_encode(char32_t c, tag<char>) {
 utf_detail::ll_encode_res<char8_t> utf_detail::ll_encode(char32_t c, tag<char8_t>) {
     ll_encode_res<char8_t> ret;
     auto                   out = ret.units;
-    if (neo::between(c, 0, 0x7f)) {
+    if (neo::between(c, 0u, 0x7fu)) {
         *out++ = static_cast<char8_t>(c);
-    } else if (neo::between(c, 0x80, 0x7ff)) {
+    } else if (neo::between(c, 0x80u, 0x7ffu)) {
         *out++ = static_cast<char8_t>((0b11'000'000 | (c >> 6)));
         *out++ = static_cast<char8_t>((0b00'111'111 & c) | 0b10'000000);
-    } else if (neo::between(c, 0x800, 0xffff)) {
+    } else if (neo::between(c, 0x800u, 0xffffu)) {
         *out++ = static_cast<char8_t>((0b1110'0000) | (c >> 12));
         *out++ = static_cast<char8_t>((0b00'111'111 & (c >> 6)) | 0b10'000000);
         *out++ = static_cast<char8_t>((0b00'111'111 & (c >> 0)) | 0b10'000000);
-    } else if (neo::between(c, 0x10'000, 0x10f'fff)) {
+    } else if (neo::between(c, 0x10'000u, 0x10f'fffu)) {
         *out++ = static_cast<char8_t>((0b1110'0000) | (c >> 18));
         *out++ = static_cast<char8_t>((0b00'111'111 & (c >> 12)) | 0b10'000000);
         *out++ = static_cast<char8_t>((0b00'111'111 & (c >> 06)) | 0b10'000000);
@@ -117,9 +117,9 @@ utf_detail::ll_encode_res<char16_t> utf_detail::ll_encode(char32_t c, tag<char16
     utf_detail::ll_encode_res<char16_t> ret;
 
     auto out = ret.units;
-    if (neo::between(c, 0x00, 0xd7ff) || neo::between(c, 0xe000, 0xffff)) {
+    if (neo::between(c, 0x00u, 0xd7ffu) || neo::between(c, 0xe000u, 0xffffu)) {
         *out++ = static_cast<char16_t>(c);
-    } else if (neo::between(c, 0x10'000, 0x10f'fff)) {
+    } else if (neo::between(c, 0x10'000u, 0x10f'fffu)) {
         char32_t uprime = c - 0x10'000;
         auto     hi     = uprime >> 10;
         auto     lo     = uprime & ((1u << 11) - 1u);
@@ -132,4 +132,20 @@ utf_detail::ll_encode_res<char16_t> utf_detail::ll_encode(char32_t c, tag<char16
     }
     ret.count = static_cast<std::size_t>(out - ret.units);
     return ret;
+}
+
+utf_detail::ll_encode_res<wchar_t> utf_detail::ll_encode(char32_t c, tag<wchar_t>) {
+    static_assert(sizeof(wchar_t) == sizeof(char16_t) || sizeof(wchar_t) == sizeof(char32_t));
+    ll_encode_res<wchar_t> res;
+    if constexpr (sizeof(wchar_t) == sizeof(char32_t)) {
+        const auto subres = ll_encode(c, tag_v<char32_t>);
+        std::copy_n(subres.units, subres.count, res.units);
+        res.count = subres.count;
+        return res;
+    } else {
+        const auto subres = ll_encode(c, tag_v<char16_t>);
+        std::copy_n(subres.units, subres.count, res.units);
+        res.count = subres.count;
+        return res;
+    }
 }

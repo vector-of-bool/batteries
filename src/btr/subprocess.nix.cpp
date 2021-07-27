@@ -11,6 +11,8 @@
 #include <neo/scope.hpp>
 #include <neo/utility.hpp>
 
+#if !_WIN32
+
 #include <fcntl.h>
 #include <poll.h>
 #include <sys/wait.h>
@@ -364,3 +366,5 @@ void subprocess::_do_read_output(subprocess_output& out, std::chrono::millisecon
 btr::pipe_reader& subprocess::_do_get_stdout_pipe() const noexcept { return _impl->stdout_pipe; }
 btr::pipe_reader& subprocess::_do_get_stderr_pipe() const noexcept { return _impl->stderr_pipe; }
 btr::pipe_writer& subprocess::_do_get_stdin_pipe() const noexcept { return _impl->stdin_pipe; }
+
+#endif
