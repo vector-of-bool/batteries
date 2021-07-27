@@ -238,7 +238,13 @@ void subprocess::_do_join() {
     if (rc == -1 and errno == EINTR) {
         btr::throw_for_signal();
     }
-    neo_assert(invariant, rc >= 0, "::waitid() failed?", _impl->pid, info.si_status);
+    neo_assert(invariant,
+               rc >= 0,
+               "::waitid() failed?",
+               rc,
+               get_current_error_code().message(),
+               _impl->pid,
+               info.si_status);
 
     if (info.si_code == neo::oper::any_of(CLD_KILLED, CLD_DUMPED)) {
         _exit_result = subprocess_exit{.signal_number = info.si_status};
@@ -257,15 +263,29 @@ void subprocess::_do_join() {
 
 bool subprocess::_do_is_running() const {
     ::siginfo_t info;
-    int         rc = ::waitid(P_PID, _impl->pid, &info, WNOHANG);
-    if (rc == 0 and not(info.si_signo == 0 and info.si_pid == 0)) {
+    info.si_pid   = 0;
+    info.si_signo = 0;
+    int rc        = ::waitid(P_PID, _impl->pid, &info, WNOHANG | WEXITED | WNOWAIT);
+    if (rc != 0) {
+        throw_current_error("Error checking status of child process");
+    }
+    if (info.si_signo != 0 or info.si_pid != 0) {
         return false;
     } else {
         return true;
     }
 }
 
-void subprocess::_do_send_signal(int signum) { ::kill(_impl->pid, signum); }
+void subprocess::_do_send_signal(int signum) {
+    neo_assert(expects,
+               !is_joined(),
+               "Attempted to send a signal to a child process that is already joined",
+               signum);
+    int rc = ::kill(_impl->pid, signum);
+    if (rc != 0) {
+        throw_current_error("::kill() to send signal to a child process failed");
+    }
+}
 
 void subprocess::_do_read_output(subprocess_output& out, std::chrono::milliseconds timeout) {
     neo_assert(expects,

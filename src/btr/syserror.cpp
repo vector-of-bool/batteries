@@ -17,3 +17,7 @@ void btr::throw_if_current_error(u8view message) {
         throw_for_system_error_code(ec, message);
     }
 }
+
+std::error_code btr::get_current_error_code() noexcept {
+    return std::error_code(get_current_error(), std::system_category());
+}

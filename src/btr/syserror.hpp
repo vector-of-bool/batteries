@@ -2,6 +2,8 @@
 
 #include "./u8view.hpp"
 
+#include <system_error>
+
 namespace btr {
 
 /// Clear the current OS error code
@@ -10,6 +12,8 @@ void clear_current_error() noexcept;
 void set_current_error(int error) noexcept;
 /// Get the current OS error code
 [[nodiscard]] int get_current_error() noexcept;
+/// Get the current OS error code wrapped in a std::error_code
+[[nodiscard]] std::error_code get_current_error_code() noexcept;
 
 /**
  * @brief Throw a std::system_error that contains the given OS error code and the associated string

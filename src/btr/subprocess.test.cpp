@@ -22,6 +22,11 @@ TEST_CASE("Spawn a simple processs") {
         REQUIRE_FALSE(proc.is_joined());
         REQUIRE_FALSE(proc.try_join());
         proc.close_stdin();
+        while (proc.is_running()) {
+            // spin
+        }
+        CHECK_FALSE(proc.is_running());
+        proc.send_signal(SIGINT);
         proc.join();
         CHECK_FALSE(proc.is_running());
         CHECK(proc.is_joined());
