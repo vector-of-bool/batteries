@@ -39,7 +39,7 @@ std::optional<std::wstring> getenv_wstr(std::wstring const& varname, std::size_t
         if (real_len == 0 && ::GetLastError() == ERROR_ENVVAR_NOT_FOUND) {
             // Environment variable is not defined
             return std::nullopt;
-        } else if (real_len > size_hint) {
+        } else if (real_len > ret.size()) {
             // Try again, with a larger buffer
             ret.resize(real_len);
             continue;
