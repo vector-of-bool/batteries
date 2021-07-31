@@ -239,31 +239,30 @@ void subprocess::_do_close() noexcept {
 }
 
 void subprocess::_do_join() {
-    ::siginfo_t info;
-    int         rc = ::waitid(P_PID, _impl->pid, &info, WEXITED);
+    int stat = 0;
+    int rc   = ::waitpid(_impl->pid, &stat, 0);
     if (rc == -1 and errno == EINTR) {
         btr::throw_for_signal();
     }
     neo_assert(invariant,
                rc >= 0,
-               "::waitid() failed?",
+               "::waitpid() failed?",
                rc,
                get_current_error_code().message(),
-               _impl->pid,
-               info.si_status);
+               *this,
+               errno,
+               stat);
 
-    if (info.si_code == neo::oper::any_of(CLD_KILLED, CLD_DUMPED)) {
-        _exit_result = subprocess_exit{.signal_number = info.si_status};
-    } else if (info.si_code == CLD_EXITED) {
-        _exit_result = subprocess_exit{.exit_code = info.si_status};
+    if (WIFEXITED(stat)) {
+        _exit_result = subprocess_exit{.exit_code = WEXITSTATUS(stat)};
+    } else if (WIFSIGNALED(stat)) {
+        _exit_result = subprocess_exit{.signal_number = WTERMSIG(stat)};
     } else {
         neo_assert(invariant,
                    false,
-                   "Unexpected waitid() child exit state. This is a bug in vob-batteries.",
-                   info.si_status,
-                   info.si_errno,
-                   info.si_signo,
-                   info.si_code);
+                   "Unexpected waitpid() child exit state. This is a bug in vob-batteries.",
+                   *this,
+                   stat);
     }
 }
 
