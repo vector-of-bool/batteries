@@ -26,7 +26,6 @@ TEST_CASE("Spawn a simple processs") {
             // spin
         }
         CHECK_FALSE(proc.is_running());
-        proc.send_signal(SIGINT);
         proc.join();
         CHECK_FALSE(proc.is_running());
         CHECK(proc.is_joined());
@@ -58,9 +57,9 @@ TEST_CASE("Spawn a simple processs") {
         CHECK(proc.join().exit_code == 0);
 
         proc = btr::subprocess::spawn({"/bin/sh", "-c", "sleep 10"});
-        proc.send_signal(SIGINT);
+        proc.send_signal(SIGTERM);
         proc.join();
-        CHECK(proc.exit_result()->signal_number == SIGINT);
+        CHECK(proc.exit_result()->signal_number == SIGTERM);
 
         auto this_dir    = std::filesystem::current_path();
         auto test_subdir = this_dir / "_test";
