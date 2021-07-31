@@ -3,6 +3,7 @@
 #include "./utf.hpp"
 
 #include <neo/assert.hpp>
+#include <neo/repr.hpp>
 
 #include <span>
 
@@ -79,4 +80,22 @@ std::string btr::quote_argv_arg(u8view arg) noexcept {
         }
     }
     return u8_as_char_encode(r);
+}
+
+void btr::subprocess::_repr_into(std::string& out) const noexcept {
+    if (!_impl) {
+        out.append("[no attached state]");
+        return;
+    }
+    neo::ufmt_into(out, "{spawn_options={}", neo::repr_value(spawn_options()), is_joined());
+    if (is_running()) {
+        out.append(", [running]");
+    } else if (!is_running()) {
+        if (!is_joined()) {
+            out.append(", [not-running but unjoined]");
+        } else {
+            neo::ufmt_into(out, ", exit_result={}", neo::repr_value(*exit_result()));
+        }
+    }
+    out.append("}");
 }

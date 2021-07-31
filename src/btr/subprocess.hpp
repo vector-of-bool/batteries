@@ -58,6 +58,19 @@ struct subprocess_exit {
             throw subprocess_failure(exit_code, signal_number);
         }
     }
+
+    friend void do_repr(auto out, const subprocess_exit* self) noexcept {
+        out.type("btr::subprocess_exit");
+        if (self) {
+            if (self->signal_number != 0) {
+                out.bracket_value("signal_number={}", self->signal_number);
+            } else if (self->exit_code) {
+                out.bracket_value("exit_code={}", self->exit_code);
+            } else {
+                out.bracket_value("exited zero");
+            }
+        }
+    }
 };
 
 struct subprocess_output {
@@ -133,9 +146,13 @@ private:
     btr::pipe_reader& _do_get_stderr_pipe() const noexcept;
     /// Per-platform impl of stdin_pipe()
     btr::pipe_writer& _do_get_stdin_pipe() const noexcept;
+    /// Per-platform impl of spawn_options()
+    const subprocess_spawn_options& _do_get_spawn_options() const noexcept;
 
     /// Per-platform impl of read_output()
     void _do_read_output(subprocess_output& out, std::chrono::milliseconds timeout);
+
+    void _repr_into(std::string& out) const noexcept;
 
 public:
     /// Cleanup
@@ -257,6 +274,10 @@ public:
     [[nodiscard]] bool has_stderr() const noexcept { return stderr_pipe().is_open(); }
     /// Determine whether stdin is (still) open
     [[nodiscard]] bool has_stdin() const noexcept { return stdin_pipe().is_open(); }
+    /// Obtain the options that were used to spawn the subprocess
+    [[nodiscard]] const subprocess_spawn_options& spawn_options() const noexcept {
+        return _do_get_spawn_options();
+    }
 
     /// Check whether join() has been called
     [[nodiscard]] bool is_joined() const noexcept { return _exit_result.has_value(); }
@@ -286,10 +307,35 @@ public:
      * @brief Obtain the subprocess_exit result of this process. If the process
      * has not been join()'d, then returns nullopt
      */
-    const std::optional<subprocess_exit>& exit_result() noexcept { return _exit_result; }
+    const std::optional<subprocess_exit>& exit_result() const noexcept { return _exit_result; }
+
+    friend void do_repr(auto out, const subprocess* self) noexcept {
+        out.type("btr::subprocess");
+        if (self) {
+            self->_repr_into(out.underlying_string());
+        }
+    }
 };
 
 struct subprocess_spawn_options {
+private:
+    static auto _repr_pipe_opt_1(auto out, const std::filesystem::path& p) {
+        return "[into file: " + out.repr_value(p).string() + "]";
+    }
+
+    static auto _repr_pipe_opt_1(auto, subprocess::stderr_to_stdout_t) {
+        return "[redirect to stdout]";
+    }
+    static auto _repr_pipe_opt_1(auto, subprocess::stdio_inherit_t) { return "[inherit]"; }
+    static auto _repr_pipe_opt_1(auto, subprocess::stdio_null_t) { return "[to-null]"; }
+    static auto _repr_pipe_opt_1(auto, subprocess::stdio_pipe_t) { return "[piped]"; }
+
+    static std::string _repr_pipe_opt(auto out, auto const& opt) {
+        return std::visit([&](const auto& el) -> std::string { return _repr_pipe_opt_1(out, el); },
+                          opt);
+    }
+
+public:
     /**
      * @brief The command to execute.
      *
@@ -407,6 +453,30 @@ struct subprocess_spawn_options {
      * to the child process.
      */
     bool set_group_leader = false;
+
+    friend void do_repr(auto out, const subprocess_spawn_options* self) noexcept {
+        out.type("btr::subprocess_spawn_options");
+        if (self) {
+            out.append("{command={}", out.repr_value(self->command));
+            if (self->program) {
+                out.append(", program={}", out.repr_value(self->program));
+            }
+            if (self->working_directory) {
+                out.append(", working_direcotory={}", out.repr_value(self->working_directory));
+            }
+            out.append(", stdin={}, stdout={}, stderr={}",
+                       _repr_pipe_opt(out, self->stdin_),
+                       _repr_pipe_opt(out, self->stdout_),
+                       _repr_pipe_opt(out, self->stderr_));
+            if (self->set_group_leader) {
+                out.append(", set-group-leader");
+            }
+            if (self->env_path_lookup && !self->program) {
+                out.append(", env-path-lookup");
+            }
+            out.append("}");
+        }
+    }
 };
 
 template <typename R>

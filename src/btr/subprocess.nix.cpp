@@ -79,10 +79,13 @@ struct subprocess::impl {
     btr::pipe_reader stdout_pipe;
     btr::pipe_reader stderr_pipe;
     btr::pipe_writer stdin_pipe;
+
+    subprocess_spawn_options spawn_options;
 };
 
 subprocess subprocess::spawn(const subprocess_spawn_options& opts) {
-    auto imp = std::make_unique<impl>();
+    auto imp           = std::make_unique<impl>();
+    imp->spawn_options = opts;
     // spawn() expects char pointers
     std::vector<char*> strings;
     for (std::string_view s : opts.command) {
@@ -97,7 +100,8 @@ subprocess subprocess::spawn(const subprocess_spawn_options& opts) {
         neo_assert(expects,
                    !opts.command.empty(),
                    "btr::subprocess::spawn(): opts.command cannot be empty without providing "
-                   "opts.program.");
+                   "opts.program.",
+                   opts);
         program = opts.command.front();
     }
 
@@ -363,5 +367,8 @@ void subprocess::_do_read_output(subprocess_output& out, std::chrono::millisecon
 btr::pipe_reader& subprocess::_do_get_stdout_pipe() const noexcept { return _impl->stdout_pipe; }
 btr::pipe_reader& subprocess::_do_get_stderr_pipe() const noexcept { return _impl->stderr_pipe; }
 btr::pipe_writer& subprocess::_do_get_stdin_pipe() const noexcept { return _impl->stdin_pipe; }
+const subprocess_spawn_options& subprocess::_do_get_spawn_options() const noexcept {
+    return _impl->spawn_options;
+}
 
 #endif

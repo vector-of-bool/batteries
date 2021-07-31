@@ -80,6 +80,8 @@ struct subprocess::impl {
     btr::pipe_reader stderr_pipe;
     btr::pipe_writer stdin_pipe;
 
+    btr::subprocess_spawn_options spawn_options;
+
     ~impl() {
         ::CloseHandle(proc_info.hProcess);
         ::CloseHandle(proc_info.hThread);
@@ -104,7 +106,8 @@ subprocess subprocess::spawn(const subprocess_spawn_options& opts) {
         }
     }
 
-    auto imp = std::make_unique<impl>();
+    auto imp           = std::make_unique<impl>();
+    imp->spawn_options = opts;
 
     pipe_writer stdout_writer;
     pipe_writer stderr_writer;
@@ -219,6 +222,9 @@ void subprocess::_do_join() {
 pipe_reader& subprocess::_do_get_stdout_pipe() const noexcept { return _impl->stdout_pipe; }
 pipe_reader& subprocess::_do_get_stderr_pipe() const noexcept { return _impl->stderr_pipe; }
 pipe_writer& subprocess::_do_get_stdin_pipe() const noexcept { return _impl->stdin_pipe; }
+const subprocess_spawn_options& subprocess::_do_get_spawn_options() const noexcept {
+    return _impl->spawn_options;
+}
 
 void subprocess::_do_read_output(subprocess_output& out, std::chrono::milliseconds timeout) {
     HANDLE handles[2];
